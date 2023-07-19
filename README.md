@@ -4,6 +4,7 @@ Nand2Tetris: Build a computer from scratch. Logic gates, ALU, memory units, asse
 ---
 **[Assembler](Chapters/(06)Assembler)** <br>  
 **[Virtual Machine](Chapters/(07-08)VirutalMachine/VirtualMachine)** <br>
+
 **[Compiler](Chapters/(11)Compiler Part2)** 
 ---
 
