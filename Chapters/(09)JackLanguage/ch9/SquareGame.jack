@@ -1,0 +1,171 @@
+
+/**
+ * Implements the Square Dance game.
+ * This simple game allows the user to move a black square around
+ * the screen, and change the square's size during the movement.
+ * When the game starts, a square of 30 by 30 pixels is shown at the
+ * top-left corner of the screen. The user controls the square as follows.
+ * The 4 arrow keys are used to move the square up, down, left, and right.
+ * The 'z' and 'x' keys are used, respectively, to decrement and increment
+ * the square's size. The 'q' key is used to quit the game.
+
+   I added a few features that shoot obstacles at the square and the 
+   player has to dodge them in order to increase his score
+ */
+ 
+
+class SquareGame {
+    field Square square; // the square of this game
+    field int direction; // the square's current direction: 
+                        // 0=none, 1=up, 2=down, 3=left, 4=right
+    field int score;
+    field Array obstacles;
+
+    /** Constructs a new Square Game. */
+    constructor SquareGame new() {
+        // Creates a 30 by 30 pixels square and positions it at the top-left
+        // of the screen.
+        let square = Square.new(0, 0, 30);
+        let direction = 0;  // initial state is no movement
+        let obstacles = Array.new(15); // create an Array of obstacles
+        let score = 0;
+        return this;
+    }
+
+    /** Disposes this game. */
+    method void dispose() {
+        do square.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    /** Moves the square in the current direction. */
+    method void moveSquare() {
+        if (direction = 1) { do square.moveUp(); }
+        if (direction = 2) { do square.moveDown(); }
+        if (direction = 3) { do square.moveLeft(); }
+        if (direction = 4) { do square.moveRight(); }
+        do Sys.wait(5);  // delays the next movement
+        return;
+    }
+
+    method boolean checkCollision(){
+        var int i;
+        let i = 0;
+    
+        while (i < obstacles.length()) {
+            if (obstacles[i] != null) {
+                if (do intersects(obstacles[i])) {
+                    return true; // Collision detected
+                }
+            }
+            let i = i + 1;
+        }
+    
+        return false; // No collision detected
+    }
+
+    method boolean intersects(Square other){
+    // Check if this square intersects with the other square
+        if ((this.x < other.x + other.size) &&(this.x + this.size > other.x) &&(this.y < other.y + other.size) &&(this.y + this.size > other.y)) {
+            return true; // Squares intersect
+        }
+        
+        return false; // Squares do not intersect
+    }
+
+    method void IncreaseScore(){
+        let score = score + 1;
+        return;
+    }
+
+    method void moveObstacles(){
+        var int i;
+        let i = 0;
+
+        while (i < obstacles.length()){
+            if(obstacles[i] != null){
+                let obstacles[i].moveDown();
+            }
+            let i = i+1;
+        }
+        return;
+    }
+
+    method void createObstacles(){
+        var int i;
+        let i = 0;
+
+        while(i < obstacles.length()){
+            if(obstacles[i] = null){
+                var int obstacleX, obstacleY, obstacleSize;
+                let obstacleX = Math.rand(500); // Generate a random X coordinate
+                let obstacleY = 0; // Set the Y coordinate to the top of the screen
+                let obstacleSize = Math.rand(10) + 5; // Generate a random size between 10 and 30 pixels
+
+                let obstacles[i] = Square.new(obstacleX,obstacleY,obstacleSize);
+            } 
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method void play(){
+        var boolean game_running;
+        let game_running = true;
+        //give some time for player to get ready
+        do Sys.wait(2000); //wait 2 seconds
+
+        while(game_running){
+            
+            if (Math.rand() < 0.1) {
+                do createObstacle(); // Create an obstacle
+            }
+            
+            do moveObstacles();
+
+            if (do checkCollision()){
+                do Output.printString("Game Over");
+                do Output.println();
+                do Output.printString("Score: ");
+                do Output.printInt(score);
+                let game_running = false;
+            } else{
+                do IncreaseScore();
+                do Sys.wait(50);
+            }
+
+        }
+
+        return;
+    }
+
+    /** Runs the game: handles the user's inputs and moves the square accordingly */
+    method void run() {
+        var char key;  // the key currently pressed by the user
+        var boolean exit;
+        let exit = false;
+        
+        while (~exit) {
+            // waits for a key to be pressed
+            while (key = 0) {
+                let key = Keyboard.keyPressed();
+                do moveSquare();
+            }
+            if (key = 81)  { let exit = true; }     // q key
+            if (key = 90)  { do square.decSize(); } // z key
+            if (key = 88)  { do square.incSize(); } // x key
+            if (key = 131) { let direction = 1; }   // up arrow
+            if (key = 133) { let direction = 2; }   // down arrow
+            if (key = 130) { let direction = 3; }   // left arrow
+            if (key = 132) { let direction = 4; }   // right arrow
+
+            // waits for the key to be released
+            while (~(key = 0)) {
+                let key = Keyboard.keyPressed();
+                do moveSquare();
+            }
+        } // while
+        return;
+    }
+}
